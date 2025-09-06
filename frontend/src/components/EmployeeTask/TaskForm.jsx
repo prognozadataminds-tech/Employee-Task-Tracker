@@ -3,11 +3,24 @@ import InputField from "./InputField";
 import SelectField from "./SelectField";
 import { addTask } from "../../api/taskApi";
 
+// ✅ Helper: Convert system time to "HH:MM AM/PM"
+function getCurrentTime12Hour() {
+  const now = new Date();
+  let hours = now.getHours();
+  const minutes = now.getMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // convert 0 -> 12
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+    2,
+    "0"
+  )} ${ampm}`;
+}
+
 export default function TaskForm({ onAdd }) {
   const [employeeName, setEmployeeName] = useState("");
   const [task, setTask] = useState("");
   const [domain, setDomain] = useState("");
-  const [time, setTime] = useState("");
+  const [time, setTime] = useState(() => getCurrentTime12Hour()); // ✅ default system time
   const [total, setTotal] = useState(10);
   const [completed, setCompleted] = useState("");
   const [count, setCount] = useState("");
@@ -71,10 +84,10 @@ export default function TaskForm({ onAdd }) {
       // Reset form
       setTask("");
       setDomain("");
-      setTime("");
+      setTime(getCurrentTime12Hour()); // ✅ reset to current time
       setCompleted("");
       setCount("");
-      setDate(new Date().toISOString().slice(0, 10)); // Reset date to today
+      setDate(new Date().toISOString().slice(0, 10));
     } catch (err) {
       console.error(err);
       alert("Failed to add task");
