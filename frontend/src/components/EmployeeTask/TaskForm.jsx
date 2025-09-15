@@ -185,12 +185,12 @@ export default function TaskForm({ onAdd }) {
     }
   };
 
-  // Employee dropdown 
-  const employeeOptions = [
-    "Emp1", "Emp2", "Emp3", "Emp4", "Emp5",
-    "Emp6", "Emp7", "Emp8", "Emp9", "Emp10",
-    "Emp11", "Emp12", "Emp13", "Emp14", "Emp15",
-  ];
+const employeeOptions = [
+  "Vsn", "Srj", "Pyd", "Smp", "Bdr",
+  "Nvj", "Sgt", "Sli", "Sha", "Pds",
+  "Nvg", "Emp12", "Emp13"
+];
+
 
   return (
     <form
@@ -213,7 +213,7 @@ export default function TaskForm({ onAdd }) {
         />
 
         <InputField
-          label="Domain (auto from Sheet2)"
+          label="Allotment ID (auto from Sheet2)"
           type="number"
           value={domain}
           readOnly
