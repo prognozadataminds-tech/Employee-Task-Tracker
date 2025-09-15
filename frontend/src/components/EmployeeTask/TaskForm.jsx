@@ -89,7 +89,7 @@ export default function TaskForm({ onAdd }) {
 
             rows.forEach((row, index) => {
               if (index === 0) return; // skip header
-              let emp = row[6]?.trim();
+              let emp = row[0]?.trim();
               if (!emp) return;
 
               // Normalize Employee → UPPERCASE
