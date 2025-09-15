@@ -156,14 +156,15 @@ export default function TaskForm({ onAdd }) {
     const newTask = {
       employeeName: employeeName.trim(),
       task,
-      allotmentID,
+      allotmentID: Number(allotmentID),
       time: time.trim(),
       total,
-      completed,
+      completed: Number(completed),
       pending,
-      count,
+      count: Number(count),
       date,
     };
+
 
     try {
       const savedTask = await addTask(newTask);
