@@ -20,7 +20,7 @@ function getCurrentTime12Hour() {
 export default function TaskForm({ onAdd }) {
   const [employeeName, setEmployeeName] = useState("");
   const [task, setTask] = useState("");
-  const [domain, setDomain] = useState(""); // auto-fill from Sheet2
+  const [allotmentID, setAllotmentID] = useState(0); // auto-fill from Sheet2
   const [time, setTime] = useState(() => getCurrentTime12Hour());
   const [total, setTotal] = useState(10); // auto-fill from Sheet2 total rows
   const [completed, setCompleted] = useState("");
@@ -29,14 +29,14 @@ export default function TaskForm({ onAdd }) {
     new Date().toISOString().slice(0, 10)
   );
 
-  //  CSV to Employee → Tasks mapping (Sheet1)
+  // CSV to Employee → Tasks mapping (Sheet1)
   const [empTaskMap, setEmpTaskMap] = useState({});
   const [taskOptions, setTaskOptions] = useState([]);
 
-  //  Domain count mapping from Sheet2 (Allotment G column)
+  // Domain count mapping from Sheet2 (Allotment G column)
   const [empDomainCount, setEmpDomainCount] = useState({});
 
-  //  Fetch Sheet1 → Employee → Task mapping
+  // Fetch Sheet1 → Employee → Task mapping
   useEffect(() => {
     const url1 =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJvoOU2HdiAh1-AEwKlLpcSjCLXM_KXUadYytvSmrnjAASSJX-sv0hLVyvPEAI4Q/pub?output=csv";
@@ -60,7 +60,6 @@ export default function TaskForm({ onAdd }) {
 
               if (!map[normalizedEmp]) map[normalizedEmp] = [];
               map[normalizedEmp].push(task);
-
             });
 
             console.log("Parsed Task Map:", map);
@@ -75,7 +74,6 @@ export default function TaskForm({ onAdd }) {
   useEffect(() => {
     const url2 =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJvoOU2HdiAh1-AEwKlLpcSjCLXM_KXUadYytvSmrnjAASSJX-sv0hLVyvPEAI4Q/pub?output=csv&gid=1040863835";
-    // Sheet2 gid
 
     fetch(url2)
       .then((res) => res.text())
@@ -99,10 +97,9 @@ export default function TaskForm({ onAdd }) {
 
               if (!countMap[normalizedEmp]) countMap[normalizedEmp] = 0;
               countMap[normalizedEmp]++;
-
             });
 
-            console.log("Domain Count Map:", countMap);
+            console.log("Allotment Count Map:", countMap);
             console.log("Sheet2 Total Rows:", totalRows);
             setEmpDomainCount(countMap);
           },
@@ -111,7 +108,7 @@ export default function TaskForm({ onAdd }) {
       .catch((err) => console.error("Error fetching Sheet2:", err));
   }, []);
 
-  // Employee select → Task options + Domain count 
+  // Employee select → Task options + AllotmentID count
   useEffect(() => {
     if (employeeName) {
       // Tasks from Sheet1
@@ -123,16 +120,16 @@ export default function TaskForm({ onAdd }) {
         setTask("");
       }
 
-      // Domain count from Sheet2
+      // AllotmentID from Sheet2
       if (empDomainCount[employeeName]) {
-        setDomain(empDomainCount[employeeName]);
+        setAllotmentID(empDomainCount[employeeName]);
       } else {
-        setDomain(0);
+        setAllotmentID(0);
       }
     } else {
       setTaskOptions([]);
       setTask("");
-      setDomain(0);
+      setAllotmentID(0);
     }
   }, [employeeName, empTaskMap, empDomainCount]);
 
@@ -159,7 +156,7 @@ export default function TaskForm({ onAdd }) {
     const newTask = {
       employeeName: employeeName.trim(),
       task,
-      domain,
+      allotmentID,
       time: time.trim(),
       total,
       completed,
@@ -189,8 +186,6 @@ export default function TaskForm({ onAdd }) {
     "NVG"
   ];
 
-
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -210,6 +205,7 @@ export default function TaskForm({ onAdd }) {
           onChange={(e) => setTask(e.target.value)}
           options={taskOptions}
         />
+
         <InputField
           label="Total"
           type="number"
@@ -218,10 +214,11 @@ export default function TaskForm({ onAdd }) {
           tabIndex={-1}
           className="bg-gray-50 text-gray-700"
         />
+
         <InputField
-          label="Allotment ID "
+          label="Allotment ID"
           type="number"
-          value={domain}
+          value={allotmentID}
           readOnly
           tabIndex={-1}
           className="bg-gray-50 text-gray-700"
@@ -244,13 +241,14 @@ export default function TaskForm({ onAdd }) {
         />
 
         <InputField
-          label="Pending "
+          label="Pending"
           type="number"
           value={pending}
           readOnly
           tabIndex={-1}
           className="bg-gray-50 text-gray-700"
         />
+
         <InputField
           label="Time (HH:MM AM/PM)"
           type="text"
@@ -259,6 +257,7 @@ export default function TaskForm({ onAdd }) {
           placeholder="12:08 AM"
           required
         />
+
         <InputField
           label="Date"
           type="date"
@@ -267,10 +266,9 @@ export default function TaskForm({ onAdd }) {
           required
         />
       </div>
+
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p className="text-xs text-gray-500">
-         
-        </p>
+        <p className="text-xs text-gray-500"></p>
         <button className="rounded-2xl bg-black px-6 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90">
           Add Entry
         </button>
