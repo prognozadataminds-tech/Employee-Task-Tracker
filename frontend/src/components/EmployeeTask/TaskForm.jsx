@@ -134,7 +134,7 @@ export default function TaskForm({ onAdd }) {
   }, [employeeName, empTaskMap, empDomainCount]);
 
   const pending = useMemo(
-    () => Math.max(0, Number(total) - Number(completed)),
+    () => Math.max(0, Number(allotmentID) - Number(completed)),
     [total, completed]
   );
 
@@ -242,7 +242,7 @@ export default function TaskForm({ onAdd }) {
         />
 
         <InputField
-          label="Pending"
+          label="Allotment ID Pending"
           type="number"
           value={pending}
           readOnly

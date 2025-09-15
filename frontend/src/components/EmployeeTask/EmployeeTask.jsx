@@ -86,10 +86,10 @@ export default function EmployeeTaskTracker() {
         <TaskForm onAdd={handleAdd} />
 
         {/* Summary */}
-        <SummarySection totals={totals} />
+        {/* <SummarySection totals={totals} /> */}
 
         {/* Table */}
-        <TaskTable rows={filtered} onDelete={handleDelete} />
+        {/* <TaskTable rows={filtered} onDelete={handleDelete} /> */}
       </div>
     </div>
   );
