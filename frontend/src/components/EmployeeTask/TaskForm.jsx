@@ -55,13 +55,12 @@ export default function TaskForm({ onAdd }) {
               const task = row[1]?.trim();
               if (!emp || !task) return;
 
-              // Normalize Employee name → "Emp1", "Emp2" 
-              const normalizedEmp =
-                emp.charAt(0).toUpperCase() +
-                emp.slice(1).toLowerCase().replace(/\s+/g, "");
+              // Normalize Employee → UPPERCASE
+              const normalizedEmp = emp.trim().toUpperCase();
 
               if (!map[normalizedEmp]) map[normalizedEmp] = [];
               map[normalizedEmp].push(task);
+
             });
 
             console.log("Parsed Task Map:", map);
@@ -75,7 +74,7 @@ export default function TaskForm({ onAdd }) {
   // Fetch Sheet2 → Allotment counts (Column G) + total rows
   useEffect(() => {
     const url2 =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJvoOU2HdiAh1-AEwKlLpcSjCLXM_KXUadYytvSmrnjAASSJX-sv0hLVyvPEAI4Q/pub?output=csv&gid=1040863835"; 
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJvoOU2HdiAh1-AEwKlLpcSjCLXM_KXUadYytvSmrnjAASSJX-sv0hLVyvPEAI4Q/pub?output=csv&gid=1040863835";
     // Sheet2 gid
 
     fetch(url2)
@@ -92,16 +91,15 @@ export default function TaskForm({ onAdd }) {
 
             rows.forEach((row, index) => {
               if (index === 0) return; // skip header
-              let emp = row[6]?.trim(); // G column
+              let emp = row[6]?.trim();
               if (!emp) return;
 
-              //  Normalize Employee name → "Emp1", "Emp2"
-              const normalizedEmp =
-                emp.charAt(0).toUpperCase() +
-                emp.slice(1).toLowerCase().replace(/\s+/g, "");
+              // Normalize Employee → UPPERCASE
+              const normalizedEmp = emp.trim().toUpperCase();
 
               if (!countMap[normalizedEmp]) countMap[normalizedEmp] = 0;
               countMap[normalizedEmp]++;
+
             });
 
             console.log("Domain Count Map:", countMap);
@@ -161,7 +159,7 @@ export default function TaskForm({ onAdd }) {
     const newTask = {
       employeeName: employeeName.trim(),
       task,
-      domain, 
+      domain,
       time: time.trim(),
       total,
       completed,
@@ -185,11 +183,12 @@ export default function TaskForm({ onAdd }) {
     }
   };
 
-const employeeOptions = [
-  "Vsn", "Srj", "Pyd", "Smp", "Bdr",
-  "Nvj", "Sgt", "Sli", "Sha", "Pds",
-  "Nvg", "Emp12", "Emp13"
-];
+  const employeeOptions = [
+    "VSN", "SRJ", "PYD", "SMP", "BDR",
+    "NVJ", "SGT", "SLI", "SHA", "PDS",
+    "NVG"
+  ];
+
 
 
   return (
@@ -211,29 +210,18 @@ const employeeOptions = [
           onChange={(e) => setTask(e.target.value)}
           options={taskOptions}
         />
-
-        <InputField
-          label="Allotment ID (auto from Sheet2)"
-          type="number"
-          value={domain}
-          readOnly
-          tabIndex={-1}
-          className="bg-gray-50 text-gray-700"
-        />
-
-        <InputField
-          label="Time (HH:MM AM/PM)"
-          type="text"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          placeholder="12:08 AM"
-          required
-        />
-
         <InputField
           label="Total (auto from Sheet2 rows)"
           type="number"
           value={total}
+          readOnly
+          tabIndex={-1}
+          className="bg-gray-50 text-gray-700"
+        />
+        <InputField
+          label="Allotment ID (auto from Sheet2)"
+          type="number"
+          value={domain}
           readOnly
           tabIndex={-1}
           className="bg-gray-50 text-gray-700"
@@ -248,15 +236,6 @@ const employeeOptions = [
         />
 
         <InputField
-          label="Pending (auto)"
-          type="number"
-          value={pending}
-          readOnly
-          tabIndex={-1}
-          className="bg-gray-50 text-gray-700"
-        />
-
-        <InputField
           label="Count"
           type="number"
           min={0}
@@ -264,6 +243,22 @@ const employeeOptions = [
           onChange={(e) => setCount(Number(e.target.value))}
         />
 
+        <InputField
+          label="Pending (auto)"
+          type="number"
+          value={pending}
+          readOnly
+          tabIndex={-1}
+          className="bg-gray-50 text-gray-700"
+        />
+        <InputField
+          label="Time (HH:MM AM/PM)"
+          type="text"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          placeholder="12:08 AM"
+          required
+        />
         <InputField
           label="Date"
           type="date"
