@@ -211,7 +211,7 @@ export default function TaskForm({ onAdd }) {
           options={taskOptions}
         />
         <InputField
-          label="Total (auto from Sheet2 rows)"
+          label="Total"
           type="number"
           value={total}
           readOnly
@@ -219,7 +219,7 @@ export default function TaskForm({ onAdd }) {
           className="bg-gray-50 text-gray-700"
         />
         <InputField
-          label="Allotment ID (auto from Sheet2)"
+          label="Allotment ID "
           type="number"
           value={domain}
           readOnly
@@ -244,7 +244,7 @@ export default function TaskForm({ onAdd }) {
         />
 
         <InputField
-          label="Pending (auto)"
+          label="Pending "
           type="number"
           value={pending}
           readOnly
@@ -269,7 +269,7 @@ export default function TaskForm({ onAdd }) {
       </div>
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p className="text-xs text-gray-500">
-          Pending = Total − Completed (auto-calculated) | Domain = Repeat count from Sheet2
+         
         </p>
         <button className="rounded-2xl bg-black px-6 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90">
           Add Entry
