@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { getTasks } from "../api/taskApi"; // adjust path if needed
+import { getTasks } from "../api/taskApi";
 
 export default function FilterPage() {
   const [rows, setRows] = useState([]);
-  const [filterDate, setFilterDate] = useState(""); // empty = no filter
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [employeeFilter, setEmployeeFilter] = useState("");
+  const [taskFilter, setTaskFilter] = useState("");
 
+  // Fetch tasks
   useEffect(() => {
     (async () => {
       try {
@@ -17,60 +21,106 @@ export default function FilterPage() {
     })();
   }, []);
 
-  // Filter +sort rows
+  // Filter + sort
   const filtered = useMemo(() => {
     return rows
-      .filter((r) => (filterDate ? r.date === filterDate : true))
+      .filter((r) =>
+        fromDate ? new Date(r.date) >= new Date(fromDate) : true
+      )
+      .filter((r) => (toDate ? new Date(r.date) <= new Date(toDate) : true))
+      .filter((r) =>
+        employeeFilter ? r.employeeName === employeeFilter : true
+      )
+      .filter((r) => (taskFilter ? r.task === taskFilter : true))
       .filter((r) =>
         search.trim()
-          ? r.employeeName.toLowerCase().includes(search.toLowerCase().trim())
+          ? r.employeeName.toLowerCase().includes(search.toLowerCase().trim()) ||
+            r.task.toLowerCase().includes(search.toLowerCase().trim())
           : true
       )
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // recent first
-  }, [rows, filterDate, search]);
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [rows, fromDate, toDate, employeeFilter, taskFilter, search]);
 
-  // Calculate totals
-  const totals = useMemo(() => {
-    return filtered.reduce(
-      (acc, r) => {
-        const total = Number(r.total) || 0;
-        const completed = Number(r.completed) || 0;
-        const pending = total - completed;
-        const count = Number(r.count) || 0;
+  // 🔹 Unique employees & tasks from FILTERED rows (not all rows)
+  const employees = [...new Set(filtered.map((r) => r.employeeName))];
+  const tasks = [...new Set(filtered.map((r) => r.task))];
 
-        acc.total += total;
-        acc.completed += completed;
-        acc.pending += pending;
-        acc.count += count;
-
-        return acc;
-      },
-      { total: 0, completed: 0, pending: 0, count: 0 }
-    );
-  }, [filtered]);
+  // Reset filters
+  const resetFilters = () => {
+    setFromDate("");
+    setToDate("");
+    setEmployeeFilter("");
+    setTaskFilter("");
+    setSearch("");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
-      <div className="mx-auto max-w-6xl px-4">
-      
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Filter Data</h1>
+      <div className="mx-auto max-w-7xl px-4">
+        <header className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">Advanced Filter</h1>
+          <button
+            onClick={resetFilters}
+            className="rounded-lg bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+          >
+            Reset Filters
+          </button>
         </header>
 
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <FilterBox label="Filter by Date">
+        {/* Advanced Filters */}
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <FilterBox label="From Date">
             <input
               type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
             />
           </FilterBox>
 
-          <FilterBox label="Search Employee">
+          <FilterBox label="To Date">
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
+            />
+          </FilterBox>
+
+          <FilterBox label="Employee">
+            <select
+              value={employeeFilter}
+              onChange={(e) => setEmployeeFilter(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
+            >
+              <option value="">All</option>
+              {employees.map((emp) => (
+                <option key={emp} value={emp}>
+                  {emp}
+                </option>
+              ))}
+            </select>
+          </FilterBox>
+
+          <FilterBox label="Task">
+            <select
+              value={taskFilter}
+              onChange={(e) => setTaskFilter(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
+            >
+              <option value="">All</option>
+              {tasks.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </FilterBox>
+
+          <FilterBox label="Search">
             <input
               type="text"
-              placeholder="e.g., e1, e2, John"
+              placeholder="Search employee or task..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
@@ -78,13 +128,7 @@ export default function FilterPage() {
           </FilterBox>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <SummaryCard label="Total" value={totals.total} />
-          <SummaryCard label="Completed" value={totals.completed} />
-          <SummaryCard label="Pending" value={totals.pending} />
-          <SummaryCard label="Count" value={totals.count} />
-        </div>
-
+        {/* Table */}
         <div className="overflow-x-auto rounded-3xl border bg-white shadow-sm">
           <table className="min-w-full text-sm">
             <thead>
@@ -97,12 +141,13 @@ export default function FilterPage() {
                 <Th className="text-right">Completed</Th>
                 <Th className="text-right">Pending</Th>
                 <Th className="text-right">Count</Th>
+                <Th className="text-right">Allotment ID</Th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-6 text-center text-gray-500">
+                  <td colSpan={9} className="p-6 text-center text-gray-500">
                     No entries found.
                   </td>
                 </tr>
@@ -115,8 +160,9 @@ export default function FilterPage() {
                     <Td>{r.time}</Td>
                     <Td align="right">{r.total}</Td>
                     <Td align="right">{r.completed}</Td>
-                    <Td align="right">{r.total - r.completed}</Td>
+                    <Td align="right">{r.pending}</Td>
                     <Td align="right">{r.count}</Td>
+                    <Td align="right">{r.allotmentID}</Td>
                   </tr>
                 ))
               )}
@@ -131,21 +177,8 @@ export default function FilterPage() {
 function FilterBox({ label, children }) {
   return (
     <div className="rounded-2xl border bg-white p-3 shadow-sm">
-      <label className="mb-1 block text-xs font-medium text-gray-600">
-        {label}
-      </label>
+      <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
       {children}
-    </div>
-  );
-}
-
-function SummaryCard({ label, value }) {
-  return (
-    <div className="rounded-3xl border bg-white p-4 text-center shadow-sm">
-      <div className="text-xs uppercase tracking-wide text-gray-500">
-        {label}
-      </div>
-      <div className="mt-1 text-xl font-semibold">{value}</div>
     </div>
   );
 }

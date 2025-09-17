@@ -10,7 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<EmployeeTaskTracker />} />
         <Route path="/login" element={<LoginPage />} />
-        {/* <Route path="/filter" element={<FilterPage />} /> */}
+        <Route path="/filter" element={<FilterPage />} />
       </Routes>
       
       <ToastContainer position="top-right" autoClose={3000} />
