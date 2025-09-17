@@ -3,6 +3,8 @@ import InputField from "./InputField";
 import SelectField from "./SelectField";
 import { addTask } from "../../api/taskApi";
 import Papa from "papaparse"; // npm install papaparse
+import { toast } from "react-toastify"; 
+import "react-toastify/dist/ReactToastify.css";
 
 // Helper: Convert system time to "HH:MM AM/PM"
 function getCurrentTime12Hour() {
@@ -138,20 +140,34 @@ export default function TaskForm({ onAdd }) {
     [total, completed]
   );
 
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!employeeName.trim() || !task || !time.trim())
-      return alert("Employee, Task, Time required");
+    if (!employeeName.trim() || !task || !time.trim()) {
+      toast.error("Employee ,Task, and Time are required!");
+      return;
+    }
 
     const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i;
-    if (!timeRegex.test(time.trim())) return alert("Invalid time format");
+    if (!timeRegex.test(time.trim())) {
+      toast.error("Invalid time format. Use HH:MM AM/PM.");
+      return;
+    }
 
-    if (completed === "" || Number(completed) <= 0)
-      return alert("Completed > 0 required");
-    if (Number(completed) > Number(total))
-      return alert("Completed cannot exceed Total");
-    if (count === "" || Number(count) < 0) return alert("Count ≥ 0 required");
+    if (completed === "" || Number(completed) <= 0) {
+      toast.error("Completed must be greater than 0.");
+      return;
+    }
+
+    if (Number(completed) > Number(total)) {
+      toast.error("Completed cannot exceed Total.");
+      return;
+    }
+
+    if (count === "" || Number(count) < 0) {
+      toast.error("Count must be ≥ 0.");
+      return;
+    }
 
     const newTask = {
       employeeName: employeeName.trim(),
@@ -165,19 +181,20 @@ export default function TaskForm({ onAdd }) {
       date,
     };
 
-
     try {
       const savedTask = await addTask(newTask);
       onAdd(savedTask);
 
-      // Reset form (keep emp + task to allow multiple entries fast)
+      toast.success("✅ Task added successfully!");
+
+      // Reset form (keep employee+task for quick entries)
       setTime(getCurrentTime12Hour());
       setCompleted("");
       setCount("");
       setDate(new Date().toISOString().slice(0, 10));
     } catch (err) {
       console.error(err);
-      alert("Failed to add task");
+      toast.error("❌ Failed to add task. Please try again.");
     }
   };
 
