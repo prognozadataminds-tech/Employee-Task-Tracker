@@ -150,7 +150,7 @@ export default function FilterPage() {
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
             />
           </FilterBox>
-          <FilterBox label="From Time">
+          <FilterBox label="From Time (24hrs)">
             <input
               type="time"
               value={fromTime}
@@ -158,7 +158,7 @@ export default function FilterPage() {
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
             />
           </FilterBox>
-          <FilterBox label="To Time">
+          <FilterBox label="To Time (24hrs)">
             <input
               type="time"
               value={toTime}
