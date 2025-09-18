@@ -1,11 +1,30 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { getTasks } from "../api/taskApi";
 
+function toMinutes(timeStr) {
+  if (!timeStr) return null;
+
+  if (timeStr.includes("AM") || timeStr.includes("PM")) {
+    const [time, modifier] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  }
+
+ 
+  const [h, m] = timeStr.split(":").map(Number);
+  return h * 60 + m;
+}
+
+
 export default function FilterPage() {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [fromTime, setFromTime] = useState("");
+  const [toTime, setToTime] = useState("");
   const [employeeFilter, setEmployeeFilter] = useState("");
   const [taskFilter, setTaskFilter] = useState("");
 
@@ -31,6 +50,22 @@ export default function FilterPage() {
       .filter((r) =>
         employeeFilter ? r.employeeName === employeeFilter : true
       )
+
+
+      .filter((r) => {
+        if (!fromTime && !toTime) return true;
+        if (!r.time) return false;
+
+        const taskMinutes = toMinutes(r.time);       // DB time
+        const fromMinutes = fromTime ? toMinutes(fromTime) : null;
+        const toMinutesVal = toTime ? toMinutes(toTime) : null;
+
+        return (!fromMinutes || taskMinutes >= fromMinutes) &&
+          (!toMinutesVal || taskMinutes <= toMinutesVal);
+      })
+
+
+
       .filter((r) => (taskFilter ? r.task === taskFilter : true))
       .filter((r) =>
         search.trim()
@@ -39,9 +74,10 @@ export default function FilterPage() {
           : true
       )
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [rows, fromDate, toDate, employeeFilter, taskFilter, search]);
+  }, [rows, fromDate, toDate, fromTime, toTime, employeeFilter, taskFilter, search]);
 
-  // 🔹 Unique employees & tasks from FILTERED rows (not all rows)
+
+  // Unique employees & tasks from FILTERED rows (not all rows)
   const employees = [...new Set(filtered.map((r) => r.employeeName))];
   const tasks = [...new Set(filtered.map((r) => r.task))];
   // Task summaries per task
@@ -66,10 +102,21 @@ export default function FilterPage() {
   const resetFilters = () => {
     setFromDate("");
     setToDate("");
+    setFromTime("");
+    setToTime("");
     setEmployeeFilter("");
     setTaskFilter("");
     setSearch("");
   };
+
+ 
+  function formatToAmPm(time24) {
+    if (!time24) return "";
+    let [h, m] = time24.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
@@ -100,6 +147,22 @@ export default function FilterPage() {
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
+            />
+          </FilterBox>
+          <FilterBox label="From Time">
+            <input
+              type="time"
+              value={fromTime}
+              onChange={(e) => setFromTime(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
+            />
+          </FilterBox>
+          <FilterBox label="To Time">
+            <input
+              type="time"
+              value={toTime}
+              onChange={(e) => setToTime(e.target.value)}
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring"
             />
           </FilterBox>
@@ -144,18 +207,43 @@ export default function FilterPage() {
             />
           </FilterBox>
         </div>
-    {/* Task Summary Cards */}
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {taskSummaries.map((t) => (
-            <div key={t.task} className="rounded-3xl border bg-white p-4 shadow-sm">
-              <div className="text-sm font-medium text-gray-600">{t.task}</div>
-              <div className="mt-2 text-xs text-gray-500">Total: {t.total}</div>
-              <div className="text-xs text-gray-500">Completed: {t.completed}</div>
-              <div className="text-xs text-gray-500">Count: {t.count}</div>
-              <div className="text-xs text-gray-500 font-semibold">Pending: {t.pending}</div>
+
+        <div className="mb-6 grid grid-cols-1 gap-6">
+          {taskSummaries.map((t, idx) => (
+            <div
+              key={idx}
+              className="w-full rounded-2xl border bg-white shadow-lg overflow-x-auto"
+            >
+              <table className="min-w-full text-base">
+                <thead>
+                  <tr className="bg-gray-100 text-sm uppercase text-gray-600">
+                    <th className="w-1/3 px-6 py-3 text-left">Task</th>
+                    <th className="px-6 py-3 text-right">Total</th>
+                    <th className="px-6 py-3 text-right">Completed</th>
+                    <th className="px-6 py-3 text-right">Pending</th>
+                    <th className="px-6 py-3 text-right">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="text-gray-800">
+                    <td className="px-6 py-4 font-medium">{t.task}</td>
+                    <td className="px-6 py-4 text-right">{t.total}</td>
+                    <td className="px-6 py-4 text-right text-green-600 font-semibold">
+                      {t.completed}
+                    </td>
+                    <td className="px-6 py-4 text-right text-red-600 font-semibold">
+                      {t.pending}
+                    </td>
+                    <td className="px-6 py-4 text-right text-blue-600 font-semibold">
+                      {t.count}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           ))}
         </div>
+
         {/* Table */}
         <div className="overflow-x-auto rounded-3xl border bg-white shadow-sm">
           <table className="min-w-full text-sm">
