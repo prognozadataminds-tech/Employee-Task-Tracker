@@ -35,7 +35,7 @@ export default function FilterPage() {
       .filter((r) =>
         search.trim()
           ? r.employeeName.toLowerCase().includes(search.toLowerCase().trim()) ||
-            r.task.toLowerCase().includes(search.toLowerCase().trim())
+          r.task.toLowerCase().includes(search.toLowerCase().trim())
           : true
       )
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -44,6 +44,23 @@ export default function FilterPage() {
   // 🔹 Unique employees & tasks from FILTERED rows (not all rows)
   const employees = [...new Set(filtered.map((r) => r.employeeName))];
   const tasks = [...new Set(filtered.map((r) => r.task))];
+  // Task summaries per task
+  const taskSummaries = useMemo(() => {
+    const map = {};
+    filtered.forEach((r) => {
+      const t = r.task || "Unknown";
+      if (!map[t]) {
+        map[t] = { task: t, total: 0, completed: 0, count: 0 };
+      }
+      map[t].total = Number(r.total) || 0;
+      map[t].completed += Number(r.completed) || 0;
+      map[t].count += Number(r.count) || 0;
+    });
+    return Object.values(map).map((t) => ({
+      ...t,
+      pending: t.total - t.completed,
+    }));
+  }, [filtered]);
 
   // Reset filters
   const resetFilters = () => {
@@ -127,7 +144,18 @@ export default function FilterPage() {
             />
           </FilterBox>
         </div>
-
+    {/* Task Summary Cards */}
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {taskSummaries.map((t) => (
+            <div key={t.task} className="rounded-3xl border bg-white p-4 shadow-sm">
+              <div className="text-sm font-medium text-gray-600">{t.task}</div>
+              <div className="mt-2 text-xs text-gray-500">Total: {t.total}</div>
+              <div className="text-xs text-gray-500">Completed: {t.completed}</div>
+              <div className="text-xs text-gray-500">Count: {t.count}</div>
+              <div className="text-xs text-gray-500 font-semibold">Pending: {t.pending}</div>
+            </div>
+          ))}
+        </div>
         {/* Table */}
         <div className="overflow-x-auto rounded-3xl border bg-white shadow-sm">
           <table className="min-w-full text-sm">
@@ -179,7 +207,9 @@ function FilterBox({ label, children }) {
     <div className="rounded-2xl border bg-white p-3 shadow-sm">
       <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
       {children}
+
     </div>
+
   );
 }
 
