@@ -80,23 +80,51 @@ export default function FilterPage() {
   // Unique employees & tasks from FILTERED rows (not all rows)
   const employees = [...new Set(filtered.map((r) => r.employeeName))];
   const tasks = [...new Set(filtered.map((r) => r.task))];
-  // Task summaries per task
-  const taskSummaries = useMemo(() => {
-    const map = {};
-    filtered.forEach((r) => {
-      const t = r.task || "Unknown";
-      if (!map[t]) {
-        map[t] = { task: t, total: 0, completed: 0, count: 0 };
-      }
-      map[t].total = Number(r.total) || 0;
-      map[t].completed += Number(r.completed) || 0;
-      map[t].count += Number(r.count) || 0;
-    });
-    return Object.values(map).map((t) => ({
-      ...t,
-      pending: t.total - t.completed,
-    }));
-  }, [filtered]);
+ const employeeOptions = [
+  "VSN", "SRJ", "PYD", "SMP", "BDR",
+  "NVJ", "SGT", "SLI", "SHA", "PDS",
+  "NVG", "NEW1", "NEW2", "NEW3"
+];
+
+const taskSummaries = useMemo(() => {
+  const map = {};
+
+  // Find latest time per employee
+  const latestTimePerEmployee = {};
+  filtered.forEach((r) => {
+    if (!employeeOptions.includes(r.employeeName)) return;
+    if (!r.time) return;
+
+    const minutes = toMinutes(r.time);
+    if (!latestTimePerEmployee[r.employeeName] || minutes > latestTimePerEmployee[r.employeeName]) {
+      latestTimePerEmployee[r.employeeName] = minutes;
+    }
+  });
+
+  // Only include tasks that match latest time per employee
+  filtered.forEach((r) => {
+    if (!employeeOptions.includes(r.employeeName)) return;
+    if (!r.time) return;
+
+    const taskMinutes = toMinutes(r.time);
+    if (taskMinutes !== latestTimePerEmployee[r.employeeName]) return;
+
+    const t = r.task || "Unknown";
+    if (!map[t]) {
+      map[t] = { task: t, total: 0, completed: 0, count: 0 };
+    }
+
+    map[t].total = Number(r.total) || 0;
+    map[t].completed += Number(r.completed) || 0;
+    map[t].count += Number(r.count) || 0;
+  });
+
+  return Object.values(map).map((t) => ({
+    ...t,
+    pending: t.total - t.completed,
+  }));
+}, [filtered]);
+
 
   // Reset filters
   const resetFilters = () => {
