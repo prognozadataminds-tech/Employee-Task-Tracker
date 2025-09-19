@@ -201,7 +201,7 @@ export default function TaskForm({ onAdd }) {
   const employeeOptions = [
     "VSN", "SRJ", "PYD", "SMP", "BDR",
     "NVJ", "SGT", "SLI", "SHA", "PDS",
-    "NVG"
+    "NVG","NEW1","NEW2","NEW3"
   ];
 
   return (
